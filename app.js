@@ -1,6 +1,6 @@
 /**
  * app.js
- * Lógica principal do Mural de Homenagens da Suellen
+ * Lógica principal do Mural de Homenagens da Suellen (Fase 2)
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .replace(/'/g, '&#039;');
     }
 
-    // 1. INICIALIZAR ELEMENTOS E COMPONENTES
+    // 1. INICIALIZAR COMPONENTES
     initHeartsBackground();
     initHeroSlider(SUELLEN_IMAGES);
     initCountdown();
@@ -37,6 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initQRcode();
     initMural('all');
     initAdminPanel();
+    initSecretLetter();
 
     // 2. SISTEMA DE PARTÍCULAS (CORAÇÕES FLUTUANTES)
     function initHeartsBackground() {
@@ -49,17 +50,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const heart = document.createElement('div');
             heart.classList.add('heart-particle');
             
-            // Randomiza caractere, posição, tamanho e velocidade
             heart.innerText = icons[Math.floor(Math.random() * icons.length)];
             heart.style.left = Math.random() * 100 + 'vw';
             
             const size = Math.random() * 1.5 + 0.8;
             heart.style.fontSize = size + 'rem';
             
-            const duration = Math.random() * 6 + 7; // 7s a 13s
+            const duration = Math.random() * 6 + 7;
             heart.style.animationDuration = duration + 's';
             
-            // Suave desfoque para efeito de profundidade
             if (size < 1.2) {
                 heart.style.filter = 'blur(1px)';
                 heart.style.opacity = '0.4';
@@ -69,13 +68,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             container.appendChild(heart);
 
-            // Remove após a conclusão da animação
             setTimeout(() => {
                 heart.remove();
             }, duration * 1000);
         }
 
-        // Cria partículas a cada 800ms
         setInterval(createHeart, 800);
     }
 
@@ -89,13 +86,11 @@ document.addEventListener('DOMContentLoaded', () => {
             slide.classList.add('slide');
             if (index === 0) slide.classList.add('active');
             
-            // Usa aspas duplas e codifica os espaços do nome do arquivo
             const encodedSrc = imgSrc.replace(/ /g, '%20');
             slide.style.backgroundImage = `url("${encodedSrc}")`;
             slider.appendChild(slide);
         });
 
-        // Loop de transição
         let currentSlide = 0;
         const slides = slider.querySelectorAll('.slide');
         
@@ -104,11 +99,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 slides[currentSlide].classList.remove('active');
                 currentSlide = (currentSlide + 1) % slides.length;
                 slides[currentSlide].classList.add('active');
-            }, 5000); // 5 segundos por foto
+            }, 5000);
         }
     }
 
-    // 4. CRONÔMETRO REGRESSIVO (19/07/2026)
+    // 4. CRONÔMETRO REGRESSIVO DO CABEÇALHO (19/07/2026)
     function initCountdown() {
         const targetDate = new Date('2026-07-19T00:00:00').getTime();
 
@@ -117,7 +112,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const difference = targetDate - now;
 
             if (difference <= 0) {
-                // Caso seja dia do aniversário ou já tenha passado
                 document.getElementById('countdown').innerHTML = `
                     <div style="font-family: var(--font-cursive); font-size: 3.5rem; color: var(--gold); text-shadow: 0 0 10px var(--gold);">
                         Feliz Aniversário, Suellen! 🎂🎉
@@ -137,7 +131,6 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('seconds').innerText = String(seconds).padStart(2, '0');
         }
 
-        // Atualiza a cada segundo
         updateTimer();
         setInterval(updateTimer, 1000);
     }
@@ -152,7 +145,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!audio || !btn) return;
 
-        // Tentar tocar no primeiro clique na página (restrição de navegador)
         const playOnFirstInteraction = () => {
             audio.play().then(() => {
                 player.classList.add('playing');
@@ -167,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.addEventListener('click', playOnFirstInteraction);
 
         btn.addEventListener('click', (e) => {
-            e.stopPropagation(); // impede acionamento de eventos na página
+            e.stopPropagation();
             if (audio.paused) {
                 audio.play();
                 player.classList.add('playing');
@@ -182,110 +174,110 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 6. RENDERIZAÇÃO E FILTRAGEM DO MURAL
+    // 6. RENDERIZAÇÃO E FILTRAGEM DO MURAL (INDEXEDB ASSÍNCRONO)
     function initMural(filter = 'all') {
         const grid = document.getElementById('mural-grid');
         const galleryGrid = document.getElementById('gallery-grid');
         if (!grid) return;
 
-        // Carrega homenagens da base local
-        const tributes = getTributes();
+        // Limpa mural anterior
         grid.innerHTML = '';
 
-        // Filtra homenagens
-        const filteredTributes = filter === 'all' 
-            ? tributes 
-            : tributes.filter(t => t.relation === filter);
+        // Carrega assincronamente as homenagens do IndexedDB
+        getTributes().then(tributes => {
+            const filteredTributes = filter === 'all' 
+                ? tributes 
+                : tributes.filter(t => t.relation === filter);
 
-        if (filteredTributes.length === 0) {
-            grid.innerHTML = `
-                <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">
-                    <i class="far fa-envelope-open" style="font-size: 3rem; margin-bottom: 15px; color: var(--rose-gold-light);"></i>
-                    <p>Nenhuma homenagem encontrada nesta categoria ainda. Seja o primeiro a enviar!</p>
-                </div>
-            `;
-        } else {
-            filteredTributes.forEach(tribute => {
-                const card = document.createElement('div');
-                card.classList.add('tribute-card');
-                card.setAttribute('data-id', tribute.id);
-                card.addEventListener('click', () => openTributeModal(tribute));
-
-                let photoHtml = '';
-                // Se for imagem local pré-semeada ou imagem em base64
-                if (tribute.photo) {
-                    const src = tribute.photo.startsWith('data:') 
-                        ? tribute.photo 
-                        : tribute.photo.replace(/ /g, '%20');
-                    photoHtml = `<img class="tribute-card-photo" src="${src}" alt="Foto de ${tribute.name}">`;
-                }
-
-                const relationText = tribute.relation === 'familia' ? 'Família' : tribute.relation === 'amigo' ? 'Amigo(a)' : 'Convidado';
-                const relationClass = `relation-${tribute.relation}`;
-
-                card.innerHTML = `
-                    ${photoHtml}
-                    <div class="tribute-header">
-                        <span class="tribute-sender">${escapeHTML(tribute.name)}</span>
-                        <span class="tribute-relation ${relationClass}">${relationText}</span>
-                    </div>
-                    <p class="tribute-text">"${escapeHTML(tribute.message)}"</p>
-                    <div class="tribute-footer">
-                        <span><i class="far fa-calendar-alt"></i> ${tribute.date}</span>
-                        <span class="tribute-readmore">Ler carta <i class="fas fa-arrow-right"></i></span>
+            if (filteredTributes.length === 0) {
+                grid.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">
+                        <i class="far fa-envelope-open" style="font-size: 3rem; margin-bottom: 15px; color: var(--rose-gold-light);"></i>
+                        <p>Nenhuma homenagem cadastrada nesta categoria ainda. Seja o primeiro!</p>
                     </div>
                 `;
+            } else {
+                filteredTributes.forEach(tribute => {
+                    const card = document.createElement('div');
+                    card.classList.add('tribute-card');
+                    card.setAttribute('data-id', tribute.id);
+                    card.addEventListener('click', () => openTributeModal(tribute));
 
-                grid.appendChild(card);
-            });
-        }
+                    // Determina o indicador visual de mídia no cabeçalho
+                    let mediaIndicator = '';
+                    let photoHtml = '';
 
-        // Renderiza também a Galeria Oficial de Momentos
-        if (galleryGrid) {
-            galleryGrid.innerHTML = '';
-            
-            // Coleta fotos das homenagens que foram enviadas + fotos locais
-            const galleryPhotos = [];
-            
-            // Adiciona imagens padrões da Suellen
-            SUELLEN_IMAGES.forEach((img, idx) => {
-                galleryPhotos.push({
-                    src: img,
-                    caption: `Momento Especial ${idx + 1}`
+                    if (tribute.media && tribute.mediaType === 'image') {
+                        const mediaUrl = URL.createObjectURL(tribute.media);
+                        photoHtml = `<img class="tribute-card-photo" src="${mediaUrl}" alt="Foto de ${tribute.name}">`;
+                        mediaIndicator = `<span class="tribute-media-indicator" title="Possui Foto"><i class="fas fa-image"></i></span>`;
+                    } else if (tribute.media && tribute.mediaType === 'audio') {
+                        mediaIndicator = `<span class="tribute-media-indicator" title="Mensagem de Voz"><i class="fas fa-microphone"></i></span>`;
+                    } else if (tribute.media && tribute.mediaType === 'video') {
+                        mediaIndicator = `<span class="tribute-media-indicator" title="Mensagem em Vídeo"><i class="fas fa-video"></i></span>`;
+                    }
+
+                    const relationText = tribute.relation === 'familia' ? 'Família' : tribute.relation === 'amigo' ? 'Amigo(a)' : 'Convidado';
+                    const relationClass = `relation-${tribute.relation}`;
+
+                    card.innerHTML = `
+                        ${photoHtml}
+                        <div class="tribute-header">
+                            <span class="tribute-sender">${escapeHTML(tribute.name)} ${mediaIndicator}</span>
+                            <span class="tribute-relation ${relationClass}">${relationText}</span>
+                        </div>
+                        <p class="tribute-text">"${escapeHTML(tribute.message)}"</p>
+                        <div class="tribute-footer">
+                            <span><i class="far fa-calendar-alt"></i> ${tribute.date}</span>
+                            <span class="tribute-readmore">Ler carta <i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    `;
+
+                    grid.appendChild(card);
                 });
-            });
+            }
 
-            // Adiciona fotos enviadas por convidados que tenham fotos
-            tributes.forEach(t => {
-                if (t.photo && !SUELLEN_IMAGES.includes(t.photo)) {
+            // Renderiza também a Galeria de Fotos
+            if (galleryGrid) {
+                galleryGrid.innerHTML = '';
+                const galleryPhotos = [];
+                
+                // Adiciona as fotos originais da pasta local
+                SUELLEN_IMAGES.forEach((img, idx) => {
                     galleryPhotos.push({
-                        src: t.photo,
-                        caption: `Enviada por ${t.name}`
+                        src: img,
+                        caption: `Momento Especial ${idx + 1}`
                     });
-                }
-            });
-
-            galleryPhotos.forEach(photo => {
-                const item = document.createElement('div');
-                item.classList.add('gallery-item');
-                
-                const src = photo.src.startsWith('data:') ? photo.src : photo.src.replace(/ /g, '%20');
-                
-                item.innerHTML = `
-                    <img src="${src}" alt="${photo.caption}">
-                    <div class="gallery-overlay">
-                        <div class="gallery-caption">${photo.caption}</div>
-                    </div>
-                `;
-                
-                // Abre modal de visualização da foto se clicado
-                item.addEventListener('click', () => {
-                    openPhotoModal(src, photo.caption);
                 });
 
-                galleryGrid.appendChild(item);
-            });
-        }
+                // Adiciona fotos enviadas pelos convidados via formulário
+                tributes.forEach(t => {
+                    if (t.media && t.mediaType === 'image') {
+                        galleryPhotos.push({
+                            src: URL.createObjectURL(t.media),
+                            caption: `Enviada por ${t.name}`
+                        });
+                    }
+                });
+
+                galleryPhotos.forEach(photo => {
+                    const item = document.createElement('div');
+                    item.classList.add('gallery-item');
+                    item.innerHTML = `
+                        <img src="${photo.src}" alt="${photo.caption}">
+                        <div class="gallery-overlay">
+                            <div class="gallery-caption">${photo.caption}</div>
+                        </div>
+                    `;
+                    
+                    item.addEventListener('click', () => {
+                        openPhotoModal(photo.src, photo.caption);
+                    });
+
+                    galleryGrid.appendChild(item);
+                });
+            }
+        });
 
         // Configurar Eventos dos Filtros
         const filterBtns = document.querySelectorAll('.filter-btn');
@@ -298,7 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 7. MODAIS (LEITURA DE CARTA E VISUALIZADOR DE FOTO)
+    // 7. MODAIS (LEITURA DE CARTA E VISUALIZADOR DE FOTOS COM REPRODUTORES DE MÍDIA)
     const modal = document.getElementById('tribute-modal');
     const modalClose = document.getElementById('modal-close');
     const modalOverlay = document.getElementById('modal-overlay');
@@ -311,16 +303,39 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('modal-message').innerText = tribute.message;
         
         const modalPhoto = document.getElementById('modal-photo');
-        if (tribute.photo) {
-            const src = tribute.photo.startsWith('data:') ? tribute.photo : tribute.photo.replace(/ /g, '%20');
-            modalPhoto.src = src;
-            modalPhoto.style.display = 'block';
-        } else {
-            modalPhoto.style.display = 'none';
+        const videoContainer = document.getElementById('modal-video-container');
+        const videoPlayer = document.getElementById('modal-video');
+        const audioContainer = document.getElementById('modal-audio-container');
+        const audioPlayer = document.getElementById('modal-audio');
+
+        // Resetar players de mídia e previews
+        modalPhoto.style.display = 'none';
+        videoContainer.style.display = 'none';
+        videoPlayer.src = '';
+        audioContainer.style.display = 'none';
+        audioPlayer.src = '';
+
+        // Carrega a mídia de acordo com o tipo
+        if (tribute.media) {
+            const mediaUrl = URL.createObjectURL(tribute.media);
+            
+            if (tribute.mediaType === 'image') {
+                modalPhoto.src = mediaUrl;
+                modalPhoto.style.display = 'block';
+            } else if (tribute.mediaType === 'video') {
+                videoPlayer.src = mediaUrl;
+                videoContainer.style.display = 'block';
+            } else if (tribute.mediaType === 'audio') {
+                audioPlayer.src = mediaUrl;
+                audioContainer.style.display = 'block';
+            }
         }
 
         modal.classList.add('active');
-        document.body.style.overflow = 'hidden'; // impede scroll de fundo
+        document.body.style.overflow = 'hidden';
+        
+        // Disparar chuva de confetes romântica
+        triggerConfettiRain();
     }
 
     function openPhotoModal(imgSrc, caption) {
@@ -331,8 +346,13 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('modal-message').innerText = '';
         
         const modalPhoto = document.getElementById('modal-photo');
+        const videoContainer = document.getElementById('modal-video-container');
+        const audioContainer = document.getElementById('modal-audio-container');
+
         modalPhoto.src = imgSrc;
         modalPhoto.style.display = 'block';
+        videoContainer.style.display = 'none';
+        audioContainer.style.display = 'none';
 
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
@@ -340,6 +360,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function closeModal() {
         if (!modal) return;
+        
+        // Para a reprodução de áudios/vídeos do modal ao fechar
+        const videoPlayer = document.getElementById('modal-video');
+        const audioPlayer = document.getElementById('modal-audio');
+        if (videoPlayer) videoPlayer.pause();
+        if (audioPlayer) audioPlayer.pause();
+
         modal.classList.remove('active');
         document.body.style.overflow = '';
     }
@@ -347,12 +374,41 @@ document.addEventListener('DOMContentLoaded', () => {
     if (modalClose) modalClose.addEventListener('click', closeModal);
     if (modalOverlay) modalOverlay.addEventListener('click', closeModal);
 
-    // 8. GERADOR AUTOMÁTICO DE QR CODE (CTA)
+    // 8. CHUVA DE CONFETES DE CORAÇÃO E BRILHOS (ROSE GOLD)
+    function triggerConfettiRain() {
+        const colors = ['#b76e79', '#f2e2a2', '#e59fa9', '#FAF6F0'];
+        
+        for (let i = 0; i < 40; i++) {
+            const confetti = document.createElement('div');
+            confetti.classList.add('confetti');
+            
+            // Variabilidade visual
+            confetti.style.left = Math.random() * 100 + 'vw';
+            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.width = Math.random() * 8 + 6 + 'px';
+            confetti.style.height = confetti.style.width;
+            
+            // Randomiza animação e atraso
+            const delay = Math.random() * 0.8;
+            confetti.style.animationDelay = delay + 's';
+            
+            const duration = Math.random() * 2 + 2; // 2s a 4s
+            confetti.style.animationDuration = duration + 's';
+            
+            document.body.appendChild(confetti);
+
+            // Remove após a queda
+            setTimeout(() => {
+                confetti.remove();
+            }, (duration + delay) * 1000);
+        }
+    }
+
+    // 9. GERADOR AUTOMÁTICO DE QR CODE (CTA)
     function initQRcode() {
         const qrImg = document.getElementById('qr-code-img');
         if (!qrImg) return;
 
-        // Constrói o link para form.html baseado na URL atual
         const currentUrl = window.location.href;
         let formUrl = '';
         
@@ -361,16 +417,84 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (currentUrl.endsWith('/')) {
             formUrl = currentUrl + 'form.html';
         } else {
-            // Caso seja aberto diretamente como arquivo ou pasta
             const lastSlash = currentUrl.lastIndexOf('/');
             formUrl = currentUrl.substring(0, lastSlash + 1) + 'form.html';
         }
 
-        // Usa API pública gratuita do qrserver para criar o QR Code
         qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(formUrl)}`;
     }
 
-    // 9. PAINEL DO ADMINISTRADOR (OCULTO E CONTROLADO POR SENHA)
+    // 10. CRONÔMETRO E DESTRANCAR DA CARTA SECRETA (surpresa)
+    function initSecretLetter() {
+        const targetDate = new Date('2026-07-19T00:00:00').getTime();
+        const lockWrapper = document.getElementById('lock-wrapper');
+        const timerLabel = document.getElementById('lock-timer-label');
+        const timerDiv = document.getElementById('lock-timer');
+        const letterCard = document.getElementById('secret-letter-card');
+
+        if (!lockWrapper) return;
+
+        let isUnlocked = false;
+
+        function updateLockTimer() {
+            const now = new Date().getTime();
+            const difference = targetDate - now;
+
+            if (difference <= 0) {
+                // Destranca
+                isUnlocked = true;
+                timerLabel.style.display = 'none';
+                timerDiv.style.display = 'none';
+                lockWrapper.classList.add('unlocked');
+                letterCard.classList.add('active');
+                
+                // Remove o cadeado após a abertura
+                setTimeout(() => {
+                    lockWrapper.style.display = 'none';
+                }, 1500);
+                
+                return true;
+            }
+
+            const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+            timerDiv.innerText = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+            return false;
+        }
+
+        // Tenta tremer o cadeado se ela clicar antes do tempo
+        lockWrapper.addEventListener('click', () => {
+            if (!isUnlocked) {
+                lockWrapper.classList.add('shake');
+                setTimeout(() => {
+                    lockWrapper.classList.remove('shake');
+                }, 500);
+                alert("Ainda está trancado com amor... Aguarde até o dia 19/07!");
+            } else {
+                // Se já estiver destrancado e clicado, dispara confetes novamente
+                triggerConfettiRain();
+            }
+        });
+
+        const checkUnlocked = updateLockTimer();
+        if (!checkUnlocked) {
+            const interval = setInterval(() => {
+                const finished = updateLockTimer();
+                if (finished) {
+                    clearInterval(interval);
+                    triggerConfettiRain();
+                }
+            }, 1000);
+        } else {
+            // Se já iniciar destrancado
+            triggerConfettiRain();
+        }
+    }
+
+    // 11. PAINEL DO ADMINISTRADOR (OCULTO E CONTROLADO POR SENHA)
     function initAdminPanel() {
         const trigger = document.getElementById('admin-trigger');
         const panel = document.getElementById('admin-panel');
@@ -378,7 +502,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (!trigger || !panel) return;
 
-        // Desbloquear painel por cliques múltiplos no trigger oculto "."
         let clickCount = 0;
         trigger.addEventListener('click', () => {
             clickCount++;
@@ -388,7 +511,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Alternativa: Permitir acesso se Yago clicar 5 vezes no título "Suellen Lisboa" do banner
         const titleTrigger = document.querySelector('.hero-title');
         if (titleTrigger) {
             let titleClicks = 0;
@@ -415,12 +537,12 @@ document.addEventListener('DOMContentLoaded', () => {
             panel.classList.remove('active');
         };
 
-        // Ações de exportação
+        // Exportação
         document.getElementById('btn-export-json').onclick = () => {
             exportTributesToJSON();
         };
 
-        // Ações de importação
+        // Importação
         const importInput = document.getElementById('import-json-file');
         importInput.onchange = (e) => {
             const file = e.target.files[0];
@@ -428,26 +550,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const reader = new FileReader();
             reader.onload = (evt) => {
-                const res = importTributesFromJSON(evt.target.result);
-                if (res.success) {
-                    alert(`Importado com sucesso! ${res.count} novas homenagens adicionadas.`);
-                    initMural('all');
-                    renderAdminTributesList();
-                } else {
-                    alert(`Erro ao importar arquivo: ${res.error}`);
-                }
-                importInput.value = ''; // limpa o input
+                importTributesFromJSON(evt.target.result).then(res => {
+                    if (res.success) {
+                        alert(`Importado com sucesso! ${res.count} novas homenagens adicionadas.`);
+                        initMural('all');
+                        renderAdminTributesList();
+                    } else {
+                        alert(`Erro ao importar arquivo: ${res.error}`);
+                    }
+                    importInput.value = '';
+                });
             };
             reader.readAsText(file);
         };
 
-        // Ações de reset do banco
+        // Resetar Banco
         document.getElementById('btn-reset-db').onclick = () => {
-            if (confirm("ATENÇÃO: Isso irá apagar TODAS as novas mensagens enviadas e restaurar o mural para as mensagens originais de exemplo. Tem certeza?")) {
-                localStorage.removeItem(STORAGE_KEY);
-                initMural('all');
-                renderAdminTributesList();
-                alert("Banco de dados resetado com sucesso!");
+            if (confirm("ATENÇÃO: Isso irá apagar TODAS as novas mensagens enviadas. Tem certeza?")) {
+                resetDatabase().then(() => {
+                    initMural('all');
+                    renderAdminTributesList();
+                    alert("Banco de dados do mural resetado!");
+                });
             }
         };
 
@@ -456,32 +580,35 @@ document.addEventListener('DOMContentLoaded', () => {
             const listContainer = document.getElementById('admin-tributes-list');
             if (!listContainer) return;
 
-            const tributes = getTributes();
             listContainer.innerHTML = '';
 
-            tributes.forEach(t => {
-                const item = document.createElement('div');
-                item.classList.add('tribute-item-admin');
-                
-                item.innerHTML = `
-                    <div class="admin-tribute-info">
-                        <h5>${escapeHTML(t.name)}</h5>
-                        <p>${escapeHTML(t.message.substring(0, 40))}...</p>
-                    </div>
-                    <button class="delete-tribute-btn" data-id="${t.id}" title="Excluir"><i class="fas fa-trash"></i></button>
-                `;
+            getTributes().then(tributes => {
+                tributes.forEach(t => {
+                    const item = document.createElement('div');
+                    item.classList.add('tribute-item-admin');
+                    
+                    const mediaTag = t.mediaType !== 'none' ? ` [${t.mediaType.toUpperCase()}]` : '';
+                    
+                    item.innerHTML = `
+                        <div class="admin-tribute-info">
+                            <h5>${escapeHTML(t.name)} ${mediaTag}</h5>
+                            <p>${escapeHTML(t.message.substring(0, 40))}...</p>
+                        </div>
+                        <button class="delete-tribute-btn" data-id="${t.id}" title="Excluir"><i class="fas fa-trash"></i></button>
+                    `;
 
-                // Configura o botão de exclusão
-                item.querySelector('.delete-tribute-btn').onclick = (e) => {
-                    const id = e.currentTarget.getAttribute('data-id');
-                    if (confirm(`Deseja mesmo excluir a homenagem de "${t.name}"?`)) {
-                        deleteTribute(id);
-                        initMural('all');
-                        renderAdminTributesList();
-                    }
-                };
+                    item.querySelector('.delete-tribute-btn').onclick = (e) => {
+                        const id = e.currentTarget.getAttribute('data-id');
+                        if (confirm(`Deseja mesmo excluir a homenagem de "${t.name}"?`)) {
+                            deleteTribute(id).then(() => {
+                                initMural('all');
+                                renderAdminTributesList();
+                            });
+                        }
+                    };
 
-                listContainer.appendChild(item);
+                    listContainer.appendChild(item);
+                });
             });
         }
     }

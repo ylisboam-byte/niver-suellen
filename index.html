@@ -35,8 +35,9 @@
             <span class="bar"></span>
             <span class="bar"></span>
         </div>
-        <!-- Áudio de Fundo Instrumental Piano - Pode ser alterado por qualquer arquivo .mp3 -->
+        <!-- Áudio de Fundo - Para alterar a música, basta colocar um arquivo musica.mp3 na mesma pasta -->
         <audio id="bg-music" loop>
+            <source src="musica.mp3" type="audio/mpeg">
             <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" type="audio/mpeg">
             Seu navegador não suporta áudio HTML5.
         </audio>
@@ -79,6 +80,44 @@
             </div>
         </div>
     </header>
+
+    <!-- CARTA SECRETA DE MEIA-NOITE -->
+    <section id="carta-secreta" class="secret-section">
+        <div class="container">
+            <div class="secret-container">
+                <h2 class="section-title" style="margin-bottom: 2rem;">Presente <span>Misterioso</span></h2>
+                <p style="color: var(--text-muted); max-width: 500px; margin: 0 auto 20px auto;">Há uma surpresa muito especial preparada pelo Yago trancada aqui. Ela se abrirá automaticamente na meia-noite do dia do seu aniversário!</p>
+                
+                <!-- O Cadeado -->
+                <div class="lock-wrapper" id="lock-wrapper">
+                    <div class="padlock-shackle"></div>
+                    <div class="padlock"></div>
+                </div>
+                
+                <!-- Cronômetro Específico da Carta -->
+                <div style="font-size: 0.9rem; color: var(--gold-dark); letter-spacing: 1px; font-weight: 600; text-transform: uppercase;" id="lock-timer-label">Desbloqueia em:</div>
+                <div style="font-family: var(--font-serif); font-size: 1.5rem; color: var(--text-color); margin-top: 5px; letter-spacing: 1px;" id="lock-timer">00d 00h 00m 00s</div>
+                
+                <!-- A Carta Revelada (Oculta por padrão no CSS) -->
+                <div class="secret-letter-revealed" id="secret-letter-card">
+                    <h3 class="secret-letter-title">Para o Amor da Minha Vida</h3>
+                    <div class="secret-letter-body" id="secret-letter-text">
+                        Suellen, meu amor,
+                        
+                        Se você está lendo isso, significa que a meia-noite chegou e o seu grande dia finalmente começou! 
+                        
+                        Eu criei este espaço não apenas para que todos pudessem demonstrar o carinho que têm por você, mas para te lembrar o quanto você é especial, batalhadora, linda e iluminada. Que o seu aniversário de 19 anos (19/07/2026) seja o início de um ciclo maravilhoso, repleto de conquistas, saúde e paz.
+                        
+                        Estarei sempre ao seu lado para celebrar suas vitórias e te apoiar em cada passo. Você é a minha felicidade diária.
+                        
+                        Com todo o meu amor,
+                        Yago Lisboa ❤️
+                    </div>
+                    <div class="letter-seal" style="margin-top: 25px;">S&Y</div>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <!-- 3. MURAL DE HOMENAGENS -->
     <section id="mural" class="container">
@@ -141,7 +180,18 @@
                 <div class="letter-date" id="modal-date">19/07/2026</div>
             </div>
             
+            <!-- Imagem da Homenagem -->
             <img class="letter-photo" id="modal-photo" src="" alt="Foto da Homenagem" style="display: none;">
+            
+            <!-- Vídeo da Homenagem -->
+            <div class="letter-video-container" id="modal-video-container" style="display: none;">
+                <video class="letter-video" id="modal-video" controls></video>
+            </div>
+            
+            <!-- Áudio da Homenagem -->
+            <div class="letter-audio-container" id="modal-audio-container" style="display: none;">
+                <audio class="letter-audio" id="modal-audio" controls></audio>
+            </div>
             
             <div class="letter-body" id="modal-message">
                 Texto completo da homenagem...

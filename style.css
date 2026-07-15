@@ -1366,3 +1366,194 @@ section {
         padding: 30px 15px;
     }
 }
+
+/* ==========================================
+   FASE 2: ESTILOS DE MÍDIA, CADEADO E CARTA SECRETA
+   ========================================== */
+
+/* Indicadores de mídia nos cards */
+.tribute-media-indicator {
+    font-size: 0.85rem;
+    color: var(--gold-dark);
+    margin-left: 8px;
+    opacity: 0.8;
+}
+
+/* Reprodutores de Áudio e Vídeo no Modal da Carta */
+.letter-audio-container {
+    width: 100%;
+    margin: 20px 0;
+    padding: 15px;
+    background: rgba(34, 13, 22, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(34, 13, 22, 0.1);
+}
+
+.letter-audio {
+    width: 100%;
+    outline: none;
+}
+
+.letter-video-container {
+    width: 100%;
+    margin: 20px 0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    border: 5px solid #fff;
+    background: #000;
+}
+
+.letter-video {
+    width: 100%;
+    max-height: 380px;
+    display: block;
+    object-fit: contain;
+}
+
+/* Seção da Carta Secreta Trancada */
+.secret-section {
+    background: linear-gradient(180deg, var(--bg-dark) 0%, var(--bg-dark-accent) 50%, var(--bg-dark) 100%);
+    border-top: 1px solid var(--border-glass);
+    border-bottom: 1px solid var(--border-glass);
+    padding: 100px 0;
+}
+
+.secret-container {
+    max-width: 700px;
+    margin: 0 auto;
+    text-align: center;
+    background: var(--bg-card);
+    border: 1px solid var(--border-glass-gold);
+    border-radius: 24px;
+    padding: 60px 40px;
+    backdrop-filter: blur(15px);
+    box-shadow: var(--shadow-premium);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Cadeado Dourado Tridimensional */
+.lock-wrapper {
+    margin: 30px auto;
+    width: 120px;
+    height: 150px;
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+}
+
+.padlock {
+    width: 100px;
+    height: 75px;
+    background: linear-gradient(135deg, #ffd700 0%, #d4af37 60%, #aa8c2c 100%);
+    border-radius: 15px;
+    position: absolute;
+    bottom: 0;
+    left: 10px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5), inset 0 2px 5px rgba(255,255,255,0.5);
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.padlock::after {
+    content: '🔑';
+    font-size: 1.5rem;
+    filter: drop-shadow(0px 1px 2px rgba(0,0,0,0.5));
+}
+
+.padlock-shackle {
+    width: 70px;
+    height: 75px;
+    border: 12px solid #d4af37;
+    border-bottom: none;
+    border-radius: 35px 35px 0 0;
+    position: absolute;
+    top: 5px;
+    left: 25px;
+    z-index: -1;
+    transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transform-origin: left bottom;
+}
+
+/* Animação de Tremer (Negado) */
+.lock-wrapper.shake {
+    animation: shakeLock 0.5s ease-in-out;
+}
+
+@keyframes shakeLock {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-10px) rotate(-5deg); }
+    40%, 80% { transform: translateX(10px) rotate(5deg); }
+}
+
+/* Animação de Destrancar */
+.lock-wrapper.unlocked .padlock-shackle {
+    transform: translateY(-25px) rotate(-15deg);
+    border-color: #ffd700;
+}
+
+.lock-wrapper.unlocked .padlock {
+    background: linear-gradient(135deg, #ffe066 0%, #e6b800 60%, #b38f00 100%);
+    box-shadow: 0 15px 30px rgba(255, 215, 0, 0.4);
+}
+
+/* Texto da Carta Secreta Oculta */
+.secret-letter-revealed {
+    display: none;
+    background: #faf6f0;
+    color: var(--text-dark);
+    border-radius: 20px;
+    padding: 40px;
+    border: 3px double #dcd0bc;
+    margin-top: 30px;
+    box-shadow: var(--shadow-premium), inset 0 0 30px rgba(183, 110, 121, 0.1);
+    animation: scaleIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    text-align: justify;
+}
+
+.secret-letter-revealed.active {
+    display: block;
+}
+
+.secret-letter-title {
+    font-family: var(--font-serif);
+    font-size: 2.2rem;
+    color: var(--text-dark);
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.secret-letter-body {
+    font-family: var(--font-serif);
+    font-size: 1.25rem;
+    line-height: 1.8;
+    color: #403035;
+    font-style: italic;
+    white-space: pre-line;
+}
+
+/* Chuva de Confetes */
+.confetti {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: var(--rose-gold-light);
+    pointer-events: none;
+    z-index: 1100;
+    opacity: 0;
+    animation: fall 3s ease-in-out infinite;
+}
+
+@keyframes fall {
+    0% {
+        transform: translateY(-10px) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(100vh) rotate(720deg);
+        opacity: 0;
+    }
+}
