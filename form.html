@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enviar Homenagem - Suellen Lisboa</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Envie sua mensagem de carinho e foto especial para o aniversário de Suellen.">
+    
+    <!-- FontAwesome para Ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Estilos CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="form-page-body">
+
+    <!-- Recipiente para partículas flutuantes -->
+    <div class="hearts-container" id="hearts-container"></div>
+
+    <div class="form-card">
+        <!-- Botão de Voltar -->
+        <a href="index.html" class="back-link" style="position: absolute; top: 25px; left: 25px; color: var(--text-muted); text-decoration: none; font-size: 0.85rem; font-weight: 500; transition: var(--transition);">
+            <i class="fas fa-arrow-left"></i> Voltar ao Mural
+        </a>
+        
+        <!-- Estado 1: O Formulário -->
+        <div id="form-content">
+            <div class="form-header" style="margin-top: 20px;">
+                <h2>Deixar Homenagem</h2>
+                <p>Escreva um recado especial e envie uma foto linda com ela</p>
+            </div>
+            
+            <form id="tribute-form" novalidate>
+                <!-- Nome -->
+                <div class="form-group">
+                    <label for="guest-name">Seu Nome</label>
+                    <input type="text" id="guest-name" class="form-control" placeholder="Como você quer ser identificado?" required>
+                </div>
+                
+                <!-- Relação -->
+                <div class="form-group">
+                    <label>Sua Relação com a Suellen</label>
+                    <div class="relation-selector">
+                        <div class="relation-option">
+                            <input type="radio" name="relation" id="rel-familia" value="familia" checked>
+                            <label for="rel-familia" class="relation-label">
+                                <i class="fas fa-home" style="margin-right: 5px;"></i> Família
+                            </label>
+                        </div>
+                        <div class="relation-option">
+                            <input type="radio" name="relation" id="rel-amigo" value="amigo">
+                            <label for="rel-amigo" class="relation-label">
+                                <i class="fas fa-users" style="margin-right: 5px;"></i> Amigo(a)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Mensagem -->
+                <div class="form-group">
+                    <label for="guest-message">Sua Declaração / Mensagem</label>
+                    <textarea id="guest-message" class="form-control" rows="5" placeholder="Escreva aqui palavras de carinho, lembranças especiais ou votos de felicidade..." required></textarea>
+                </div>
+                
+                <!-- Upload de Foto -->
+                <div class="form-group">
+                    <label>Adicionar uma Foto Especial (Opcional)</label>
+                    <div class="upload-area" id="drop-zone">
+                        <input type="file" id="guest-photo" accept="image/*" style="display: none;">
+                        <i class="fas fa-camera upload-icon"></i>
+                        <span class="upload-text">Toque para <span>tirar/escolher foto</span> ou arraste aqui</span>
+                    </div>
+                    
+                    <!-- Prévia da Foto Selecionada -->
+                    <div id="photo-preview-container">
+                        <img id="photo-preview" src="" alt="Prévia da Foto">
+                        <button type="button" class="remove-photo-btn" id="btn-remove-photo" title="Remover Foto">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Botão Enviar -->
+                <button type="submit" class="btn-premium" id="btn-submit" style="width: 100%; justify-content: center; margin-top: 10px;">
+                    <i class="fas fa-paper-plane"></i> Enviar Homenagem
+                </button>
+            </form>
+        </div>
+
+        <!-- Estado 2: Sucesso com Animação -->
+        <div id="success-content" class="success-card">
+            <div class="paper-plane-animation">
+                <i class="fas fa-paper-plane paper-plane"></i>
+            </div>
+            
+            <i class="fas fa-check-circle success-icon" style="font-size: 3rem; color: var(--gold); display: block; margin-top: 10px;"></i>
+            
+            <h2 style="font-family: var(--font-serif); font-size: 2.2rem; color: var(--gold); margin-bottom: 15px;">Homenagem Enviada!</h2>
+            
+            <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin-bottom: 30px; max-width: 400px; margin-left: auto; margin-right: auto;">
+                Sua declaração foi recebida e já está brilhando no mural de aniversário da Suellen. Obrigado por fazer parte deste dia especial!
+            </p>
+            
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                <a href="index.html" class="btn-premium" style="justify-content: center;">
+                    <i class="fas fa-th"></i> Ir para o Mural
+                </a>
+                <button id="btn-send-another" class="admin-btn">
+                    <i class="fas fa-plus"></i> Enviar Outra Mensagem
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts JavaScript -->
+    <script src="database.js"></script>
+    <script src="form.js"></script>
+</body>
+</html>

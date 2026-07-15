@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suellen Lima Da Conceição Lisboa - 19/07/2026</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Um espaço especial de homenagens e lembranças dedicado ao aniversário de Suellen Lima Da Conceição Lisboa.">
+    <meta name="keywords" content="Suellen, aniversário, homenagens, fotos, mural digital">
+    
+    <!-- FontAwesome para Ícones Premium -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Estilos CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Recipiente para partículas flutuantes (corações/brilhos) -->
+    <div class="hearts-container" id="hearts-container"></div>
+
+    <!-- 1. PLAYER DE ÁUDIO FLUTUANTE -->
+    <div class="audio-player" id="audio-player">
+        <button class="audio-btn" id="audio-btn" aria-label="Tocar Música">
+            <i class="fas fa-play" id="audio-icon"></i>
+        </button>
+        <div class="audio-info">
+            <div class="audio-title">Melodia de Fundo</div>
+            <div class="audio-artist">Toque para ouvir</div>
+        </div>
+        <div class="visualizer" id="visualizer">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </div>
+        <!-- Áudio de Fundo Instrumental Piano - Pode ser alterado por qualquer arquivo .mp3 -->
+        <audio id="bg-music" loop>
+            <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" type="audio/mpeg">
+            Seu navegador não suporta áudio HTML5.
+        </audio>
+    </div>
+
+    <!-- 2. HERO SECTION COM SLIDESHOW BACKGROUND -->
+    <header class="hero" id="home">
+        <div class="hero-slider-bg" id="hero-slider">
+            <!-- Os slides serão injetados dinamicamente via JS com as fotos da Suellen -->
+        </div>
+        <div class="hero-overlay"></div>
+        
+        <div class="hero-content">
+            <span class="hero-subtitle">Parabéns pelo seu dia</span>
+            <h1 class="hero-title">
+                Suellen Lisboa
+                <span class="hero-cursive">Seu Aniversário</span>
+            </h1>
+            
+            <div class="hero-date">19 de Julho de 2026</div>
+            
+            <!-- Cronômetro Regressivo -->
+            <div class="countdown-container" id="countdown">
+                <div class="countdown-box">
+                    <span class="countdown-value" id="days">00</span>
+                    <span class="countdown-label">Dias</span>
+                </div>
+                <div class="countdown-box">
+                    <span class="countdown-value" id="hours">00</span>
+                    <span class="countdown-label">Horas</span>
+                </div>
+                <div class="countdown-box">
+                    <span class="countdown-value" id="minutes">00</span>
+                    <span class="countdown-label">Minutos</span>
+                </div>
+                <div class="countdown-box">
+                    <span class="countdown-value" id="seconds">00</span>
+                    <span class="countdown-label">Segundos</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 3. MURAL DE HOMENAGENS -->
+    <section id="mural" class="container">
+        <h2 class="section-title">Mural de <span>Homenagens</span></h2>
+        
+        <!-- Filtros do Mural -->
+        <div class="mural-controls">
+            <button class="filter-btn active" data-filter="all">Tudo</button>
+            <button class="filter-btn" data-filter="familia"><i class="fas fa-home" style="color: #f2e2a2; margin-right: 5px;"></i> Família</button>
+            <button class="filter-btn" data-filter="amigo"><i class="fas fa-users" style="margin-right: 5px;"></i> Amigos</button>
+        </div>
+        
+        <!-- Grade do Mural -->
+        <div class="mural-grid" id="mural-grid">
+            <!-- Cartões de homenagens injetados dinamicamente pelo JS -->
+        </div>
+    </section>
+
+    <!-- 4. GALERIA DE FOTOS (MOMENTOS ESPECIAIS) -->
+    <section id="galeria" style="background: rgba(18, 6, 11, 0.5); border-top: 1px solid var(--border-glass);">
+        <div class="container">
+            <h2 class="section-title">Galeria de <span>Momentos</span></h2>
+            
+            <div class="gallery-grid" id="gallery-grid">
+                <!-- Fotos locais injetadas via JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. CTA / CONVITE PARA MANDAR DECLARAÇÃO -->
+    <section id="enviar-cta" class="cta-section">
+        <div class="container">
+            <div class="cta-box">
+                <h2>Quer deixar sua homenagem?</h2>
+                <p style="color: var(--text-muted); max-width: 600px;">Escaneie o QR Code abaixo com a câmera do seu celular para enviar uma foto especial e escrever a sua mensagem. Ela aparecerá no mural em tempo real!</p>
+                
+                <div class="cta-qr" id="qr-container">
+                    <img id="qr-code-img" src="" alt="QR Code para Envio">
+                    <span class="cta-qr-label">ESCANEIE PARA ENVIAR</span>
+                </div>
+                
+                <div>
+                    <a href="form.html" class="btn-premium">
+                        <i class="fas fa-paper-plane"></i> Enviar Homenagem
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 6. MODAL PARA LEITURA DE CARTA -->
+    <div class="modal" id="tribute-modal">
+        <div class="modal-overlay" id="modal-overlay"></div>
+        <div class="modal-container">
+            <button class="modal-close" id="modal-close"><i class="fas fa-times"></i></button>
+            
+            <div class="letter-header">
+                <div class="letter-stamp"><i class="fas fa-heart"></i></div>
+                <h3 class="letter-title" id="modal-sender">Nome do Remetente</h3>
+                <div class="letter-date" id="modal-date">19/07/2026</div>
+            </div>
+            
+            <img class="letter-photo" id="modal-photo" src="" alt="Foto da Homenagem" style="display: none;">
+            
+            <div class="letter-body" id="modal-message">
+                Texto completo da homenagem...
+            </div>
+            
+            <div class="letter-seal">S&Y</div>
+        </div>
+    </div>
+
+    <!-- 7. BOTÃO FLUTUANTE (FAB) PARA ENVIO RÁPIDO -->
+    <a href="form.html" class="floating-fab" title="Enviar Homenagem" aria-label="Enviar Homenagem">
+        <i class="fas fa-heart"></i>
+    </a>
+
+    <!-- 8. TRIGGER OCULTO E PAINEL ADMINISTRATIVO -->
+    <div class="admin-trigger" id="admin-trigger" title="Painel Admin">.</div>
+    
+    <div class="admin-panel" id="admin-panel">
+        <div class="admin-header">
+            <h3><i class="fas fa-cog"></i> Gerenciar Mural</h3>
+            <button class="admin-close" id="admin-close-btn"><i class="fas fa-times"></i></button>
+        </div>
+        
+        <div class="admin-actions">
+            <h4>Ações do Banco</h4>
+            <button class="admin-btn" id="btn-export-json"><i class="fas fa-download"></i> Exportar Dados (JSON)</button>
+            
+            <div class="file-input-wrapper">
+                <button class="admin-btn"><i class="fas fa-upload"></i> Importar / Mesclar (JSON)</button>
+                <input type="file" id="import-json-file" accept=".json">
+            </div>
+            
+            <button class="admin-btn" id="btn-reset-db" style="background: rgba(255, 74, 90, 0.15); border-color: rgba(255, 74, 90, 0.4); color: #ff4a5a;"><i class="fas fa-trash-alt"></i> Resetar para Padrão</button>
+        </div>
+        
+        <h4>Mensagens Enviadas</h4>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 15px;">Aqui você pode excluir mensagens indesejadas.</p>
+        <div class="tributes-list-admin" id="admin-tributes-list">
+            <!-- Lista de mensagens para deletar injetada via JS -->
+        </div>
+    </div>
+
+    <!-- Rodapé -->
+    <footer style="text-align: center; padding: 40px 20px; border-top: 1px solid var(--border-glass); color: var(--text-muted); font-size: 0.85rem; background: var(--bg-dark);">
+        <p>Feito com amor para o aniversário de Suellen &copy; 2026. Todos os direitos reservados.</p>
+    </footer>
+
+    <!-- Scripts JavaScript -->
+    <script src="database.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
