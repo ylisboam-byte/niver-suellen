@@ -145,7 +145,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!audio || !btn) return;
 
+        // Volume máximo
+        audio.volume = 1.0;
+
         const playOnFirstInteraction = () => {
+            audio.volume = 1.0;
             audio.play().then(() => {
                 player.classList.add('playing');
                 icon.className = 'fas fa-pause';
@@ -161,6 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
             if (audio.paused) {
+                audio.volume = 1.0;
                 audio.play();
                 player.classList.add('playing');
                 icon.className = 'fas fa-pause';
