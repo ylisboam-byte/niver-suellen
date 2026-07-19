@@ -2,10 +2,12 @@
  * database.js
  * Gerenciamento das homenagens usando IndexedDB (para suportar arquivos grandes como áudio e vídeo).
  * Permite armazenamento local seguro em formato Blob e conversão automática para Base64 na importação/exportação.
+ * 
+ * v2.1 - Adicionado campo `status` ('pending' | 'approved') para moderação de conteúdo.
  */
 
 const DB_NAME = 'suellen_tributes_db';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // Versão incrementada para forçar migração com o novo campo `status`
 const STORE_NAME = 'tributes';
 
 // Abre a conexão com o banco de dados IndexedDB
@@ -18,15 +20,45 @@ function openDB() {
             if (!db.objectStoreNames.contains(STORE_NAME)) {
                 db.createObjectStore(STORE_NAME, { keyPath: 'id' });
             }
+            // Migração: garante que registros antigos sem `status` recebam 'approved'
+            // (upgrade é só estrutural; a migração de dados é feita após abertura)
         };
         
-        request.onsuccess = (e) => resolve(e.target.result);
+        request.onsuccess = (e) => {
+            const db = e.target.result;
+            // Migração de dados: adiciona `status: 'approved'` para registros antigos
+            migrateOldRecords(db).then(() => resolve(db));
+        };
         request.onerror = (e) => reject(e.target.error);
     });
 }
 
-// Carrega todas as homenagens ordenadas por data decrescente
-function getTributes() {
+// Migra registros antigos que não possuem o campo `status`
+function migrateOldRecords(db) {
+    return new Promise((resolve) => {
+        const transaction = db.transaction(STORE_NAME, 'readwrite');
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.getAll();
+        
+        request.onsuccess = () => {
+            const records = request.result || [];
+            let updated = 0;
+            records.forEach(record => {
+                if (!record.status) {
+                    record.status = 'approved'; // Homenagens antigas já aprovadas automaticamente
+                    store.put(record);
+                    updated++;
+                }
+            });
+            transaction.oncomplete = () => resolve(updated);
+            transaction.onerror = () => resolve(0);
+        };
+        request.onerror = () => resolve(0);
+    });
+}
+
+// Carrega TODAS as homenagens (sem filtro de status) — para uso administrativo
+function getAllTributes() {
     return openDB().then(db => {
         return new Promise((resolve, reject) => {
             const transaction = db.transaction(STORE_NAME, 'readonly');
@@ -35,7 +67,6 @@ function getTributes() {
             
             request.onsuccess = () => {
                 const list = request.result || [];
-                // Ordena decrescente pelo timestamp contido no ID (tribute-timestamp-random)
                 list.sort((a, b) => {
                     const timeA = a.id.startsWith('tribute-') ? parseInt(a.id.split('-')[1]) : 0;
                     const timeB = b.id.startsWith('tribute-') ? parseInt(b.id.split('-')[1]) : 0;
@@ -49,7 +80,21 @@ function getTributes() {
     });
 }
 
-// Adiciona uma nova homenagem (Blob de mídia e mediaType: 'image', 'audio', 'video', 'none')
+// Carrega apenas homenagens APROVADAS — para exibição no mural público
+function getTributes() {
+    return getAllTributes().then(list => {
+        return list.filter(t => t.status === 'approved');
+    });
+}
+
+// Carrega apenas homenagens PENDENTES — para o painel admin
+function getPendingTributes() {
+    return getAllTributes().then(list => {
+        return list.filter(t => t.status === 'pending');
+    });
+}
+
+// Adiciona uma nova homenagem com status 'pending' (aguardando aprovação)
 function addTribute(name, relation, message, mediaBlob, mediaType) {
     const newTribute = {
         id: 'tribute-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
@@ -58,7 +103,8 @@ function addTribute(name, relation, message, mediaBlob, mediaType) {
         message: message,
         date: new Date().toLocaleDateString('pt-BR'),
         media: mediaBlob || null,      // Arquivo Blob real
-        mediaType: mediaType || 'none' // 'image', 'audio', 'video', 'none'
+        mediaType: mediaType || 'none', // 'image', 'audio', 'video', 'none'
+        status: 'pending'              // Aguardando aprovação do administrador
     };
 
     return openDB().then(db => {
@@ -69,6 +115,54 @@ function addTribute(name, relation, message, mediaBlob, mediaType) {
             
             request.onsuccess = () => resolve(newTribute);
             request.onerror = () => reject(request.error);
+        });
+    });
+}
+
+// Aprova uma homenagem (muda status para 'approved')
+function approveTribute(id) {
+    return openDB().then(db => {
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction(STORE_NAME, 'readwrite');
+            const store = transaction.objectStore(STORE_NAME);
+            const getReq = store.get(id);
+            
+            getReq.onsuccess = () => {
+                const tribute = getReq.result;
+                if (tribute) {
+                    tribute.status = 'approved';
+                    const putReq = store.put(tribute);
+                    putReq.onsuccess = () => resolve(tribute);
+                    putReq.onerror = () => reject(putReq.error);
+                } else {
+                    reject(new Error('Homenagem não encontrada'));
+                }
+            };
+            getReq.onerror = () => reject(getReq.error);
+        });
+    });
+}
+
+// Rejeita uma homenagem (muda status para 'rejected')
+function rejectTribute(id) {
+    return openDB().then(db => {
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction(STORE_NAME, 'readwrite');
+            const store = transaction.objectStore(STORE_NAME);
+            const getReq = store.get(id);
+            
+            getReq.onsuccess = () => {
+                const tribute = getReq.result;
+                if (tribute) {
+                    tribute.status = 'rejected';
+                    const putReq = store.put(tribute);
+                    putReq.onsuccess = () => resolve(tribute);
+                    putReq.onerror = () => reject(putReq.error);
+                } else {
+                    reject(new Error('Homenagem não encontrada'));
+                }
+            };
+            getReq.onerror = () => reject(getReq.error);
         });
     });
 }
@@ -132,7 +226,7 @@ function base64ToBlob(base64Data) {
 
 // Exporta homenagens convertendo os Blobs para string Base64 em lote
 function exportTributesToJSON() {
-    getTributes().then(async (tributes) => {
+    getAllTributes().then(async (tributes) => {
         const exportData = [];
         for (const t of tributes) {
             let mediaBase64 = '';
@@ -146,7 +240,8 @@ function exportTributesToJSON() {
                 message: t.message,
                 date: t.date,
                 mediaBase64: mediaBase64,
-                mediaType: t.mediaType
+                mediaType: t.mediaType,
+                status: t.status || 'approved'
             });
         }
         
@@ -188,7 +283,8 @@ function importTributesFromJSON(jsonString) {
                             message: item.message,
                             date: item.date,
                             media: mediaBlob,
-                            mediaType: item.mediaType || 'none'
+                            mediaType: item.mediaType || 'none',
+                            status: item.status || 'approved' // Mantém status ao importar
                         };
                         
                         await insertTributeDirectly(db, newTribute);

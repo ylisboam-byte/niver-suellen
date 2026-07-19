@@ -210,7 +210,7 @@
     
     <div class="admin-panel" id="admin-panel">
         <div class="admin-header">
-            <h3><i class="fas fa-cog"></i> Gerenciar Mural</h3>
+            <h3><i class="fas fa-shield-alt"></i> Moderação do Mural</h3>
             <button class="admin-close" id="admin-close-btn"><i class="fas fa-times"></i></button>
         </div>
         
@@ -225,11 +225,29 @@
             
             <button class="admin-btn" id="btn-reset-db" style="background: rgba(255, 74, 90, 0.15); border-color: rgba(255, 74, 90, 0.4); color: #ff4a5a;"><i class="fas fa-trash-alt"></i> Resetar para Padrão</button>
         </div>
+
+        <!-- Abas de Moderação -->
+        <div class="admin-tabs">
+            <button class="admin-tab-btn active" data-tab="pending">
+                <i class="fas fa-clock"></i> Pendentes
+            </button>
+            <button class="admin-tab-btn" data-tab="approved">
+                <i class="fas fa-check-circle"></i> Aprovadas
+            </button>
+            <button class="admin-tab-btn" data-tab="rejected">
+                <i class="fas fa-times-circle"></i> Rejeitadas
+            </button>
+        </div>
+
+        <!-- Ação rápida -->
+        <div style="display:flex; justify-content:flex-end; margin-bottom: 10px;">
+            <button class="admin-btn" id="btn-approve-all" style="font-size:0.78rem; padding: 6px 14px; background:rgba(100,200,100,0.12); border-color:rgba(100,200,100,0.4); color:#6dc56d;">
+                <i class="fas fa-check-double"></i> Aprovar Todas Pendentes
+            </button>
+        </div>
         
-        <h4>Mensagens Enviadas</h4>
-        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 15px;">Aqui você pode excluir mensagens indesejadas.</p>
         <div class="tributes-list-admin" id="admin-tributes-list">
-            <!-- Lista de mensagens para deletar injetada via JS -->
+            <!-- Lista de mensagens injetada via JS -->
         </div>
     </div>
 

@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initMural('all');
     initAdminPanel();
     initSecretLetter();
+    checkPendingBadge(); // Verifica homenagens pendentes periodicamente
 
     // 2. SISTEMA DE PARTÍCULAS (CORAÇÕES FLUTUANTES)
     function initHeartsBackground() {
@@ -499,7 +500,37 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 11. PAINEL DO ADMINISTRADOR (OCULTO E CONTROLADO POR SENHA)
+    // 11. BADGE DE PENDENTES (notificação visual)
+    function checkPendingBadge() {
+        const trigger = document.getElementById('admin-trigger');
+        if (!trigger) return;
+
+        function updateBadge() {
+            getPendingTributes().then(pending => {
+                // Remove badge anterior
+                const oldBadge = trigger.querySelector('.admin-badge');
+                if (oldBadge) oldBadge.remove();
+
+                if (pending.length > 0) {
+                    const badge = document.createElement('span');
+                    badge.classList.add('admin-badge');
+                    badge.textContent = pending.length;
+                    trigger.appendChild(badge);
+                    trigger.style.color = '#f2e2a2';
+                    trigger.style.fontWeight = 'bold';
+                } else {
+                    trigger.style.color = '';
+                    trigger.style.fontWeight = '';
+                }
+            });
+        }
+
+        updateBadge();
+        // Verifica a cada 30 segundos
+        setInterval(updateBadge, 30000);
+    }
+
+    // 12. PAINEL DO ADMINISTRADOR (OCULTO E CONTROLADO POR SENHA)
     function initAdminPanel() {
         const trigger = document.getElementById('admin-trigger');
         const panel = document.getElementById('admin-panel');
@@ -507,24 +538,15 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (!trigger || !panel) return;
 
-        let clickCount = 0;
+        // 1 clique abre direto o painel
         trigger.addEventListener('click', () => {
-            clickCount++;
-            if (clickCount >= 5) {
-                clickCount = 0;
-                verifyAdminAccess();
-            }
+            verifyAdminAccess();
         });
 
         const titleTrigger = document.querySelector('.hero-title');
         if (titleTrigger) {
-            let titleClicks = 0;
             titleTrigger.addEventListener('click', () => {
-                titleClicks++;
-                if (titleClicks >= 5) {
-                    titleClicks = 0;
-                    verifyAdminAccess();
-                }
+                verifyAdminAccess();
             });
         }
 
@@ -532,7 +554,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const pwd = prompt("Digite a senha de acesso administrativo:");
             if (pwd === ADMIN_PASSWORD) {
                 panel.classList.add('active');
-                renderAdminTributesList();
+                renderAdminTributesList('pending');
             } else if (pwd !== null) {
                 alert("Senha incorreta!");
             }
@@ -559,7 +581,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (res.success) {
                         alert(`Importado com sucesso! ${res.count} novas homenagens adicionadas.`);
                         initMural('all');
-                        renderAdminTributesList();
+                        renderAdminTributesList('pending');
                     } else {
                         alert(`Erro ao importar arquivo: ${res.error}`);
                     }
@@ -574,47 +596,179 @@ document.addEventListener('DOMContentLoaded', () => {
             if (confirm("ATENÇÃO: Isso irá apagar TODAS as novas mensagens enviadas. Tem certeza?")) {
                 resetDatabase().then(() => {
                     initMural('all');
-                    renderAdminTributesList();
+                    renderAdminTributesList('pending');
+                    checkPendingBadge();
                     alert("Banco de dados do mural resetado!");
                 });
             }
         };
 
-        // Renderiza a lista de mensagens para remoção rápida
-        function renderAdminTributesList() {
+        // Abas de filtro do painel admin
+        panel.querySelectorAll('.admin-tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                panel.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                renderAdminTributesList(btn.getAttribute('data-tab'));
+            });
+        });
+
+        // Botão Aprovar Tudo
+        const approveAllBtn = document.getElementById('btn-approve-all');
+        if (approveAllBtn) {
+            approveAllBtn.onclick = () => {
+                getPendingTributes().then(pending => {
+                    if (pending.length === 0) {
+                        alert('Não há homenagens pendentes.');
+                        return;
+                    }
+                    if (confirm(`Aprovar todas as ${pending.length} homenagens pendentes?`)) {
+                        Promise.all(pending.map(t => approveTribute(t.id))).then(() => {
+                            initMural('all');
+                            renderAdminTributesList('pending');
+                            checkPendingBadge();
+                        });
+                    }
+                });
+            };
+        }
+
+        // Renderiza a lista de mensagens com status filtrado
+        function renderAdminTributesList(statusFilter = 'pending') {
             const listContainer = document.getElementById('admin-tributes-list');
             if (!listContainer) return;
 
-            listContainer.innerHTML = '';
+            listContainer.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);"><i class="fas fa-spinner fa-spin"></i> Carregando...</div>';
 
-            getTributes().then(tributes => {
+            getAllTributes().then(allTributes => {
+                const tributes = allTributes.filter(t => {
+                    const s = t.status || 'approved';
+                    return s === statusFilter;
+                });
+
+                listContainer.innerHTML = '';
+
+                if (tributes.length === 0) {
+                    const emptyMsg = statusFilter === 'pending'
+                        ? '✅ Nenhuma homenagem pendente de aprovação!'
+                        : statusFilter === 'approved'
+                            ? 'Nenhuma homenagem aprovada ainda.'
+                            : 'Nenhuma homenagem rejeitada.';
+                    listContainer.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:0.9rem;">${emptyMsg}</div>`;
+                    return;
+                }
+
                 tributes.forEach(t => {
                     const item = document.createElement('div');
                     item.classList.add('tribute-item-admin');
                     
-                    const mediaTag = t.mediaType !== 'none' ? ` [${t.mediaType.toUpperCase()}]` : '';
-                    
+                    const mediaTag = t.mediaType !== 'none' ? ` <span style="font-size:0.7rem;background:rgba(183,110,121,0.2);padding:2px 6px;border-radius:10px;">${t.mediaType.toUpperCase()}</span>` : '';
+                    const msgPreview = t.message.length > 50 ? t.message.substring(0, 50) + '...' : t.message;
+
+                    // Define botões de ação conforme o status atual
+                    let actionButtons = '';
+                    if (statusFilter === 'pending') {
+                        actionButtons = `
+                            <button class="approve-tribute-btn admin-action-btn" data-id="${t.id}" title="Aprovar" style="background:rgba(100,200,100,0.15);border-color:rgba(100,200,100,0.5);color:#6dc56d;">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="reject-tribute-btn admin-action-btn" data-id="${t.id}" title="Rejeitar" style="background:rgba(255,74,90,0.15);border-color:rgba(255,74,90,0.4);color:#ff4a5a;">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `;
+                    } else if (statusFilter === 'approved') {
+                        actionButtons = `
+                            <button class="reject-tribute-btn admin-action-btn" data-id="${t.id}" title="Revogar aprovação" style="background:rgba(255,74,90,0.15);border-color:rgba(255,74,90,0.4);color:#ff4a5a;">
+                                <i class="fas fa-ban"></i>
+                            </button>
+                            <button class="delete-tribute-btn admin-action-btn" data-id="${t.id}" title="Excluir" style="background:rgba(80,80,80,0.2);border-color:rgba(150,150,150,0.3);color:#aaa;">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        `;
+                    } else {
+                        actionButtons = `
+                            <button class="approve-tribute-btn admin-action-btn" data-id="${t.id}" title="Aprovar" style="background:rgba(100,200,100,0.15);border-color:rgba(100,200,100,0.5);color:#6dc56d;">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="delete-tribute-btn admin-action-btn" data-id="${t.id}" title="Excluir" style="background:rgba(80,80,80,0.2);border-color:rgba(150,150,150,0.3);color:#aaa;">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        `;
+                    }
+
                     item.innerHTML = `
                         <div class="admin-tribute-info">
                             <h5>${escapeHTML(t.name)} ${mediaTag}</h5>
-                            <p>${escapeHTML(t.message.substring(0, 40))}...</p>
+                            <p style="font-size:0.8rem;color:var(--text-muted);margin:3px 0;">${escapeHTML(msgPreview)}</p>
+                            <span style="font-size:0.75rem;color:var(--gold-dark);">${t.date}</span>
                         </div>
-                        <button class="delete-tribute-btn" data-id="${t.id}" title="Excluir"><i class="fas fa-trash"></i></button>
+                        <div class="admin-action-btns" style="display:flex;gap:6px;flex-shrink:0;">
+                            ${actionButtons}
+                        </div>
                     `;
 
-                    item.querySelector('.delete-tribute-btn').onclick = (e) => {
-                        const id = e.currentTarget.getAttribute('data-id');
-                        if (confirm(`Deseja mesmo excluir a homenagem de "${t.name}"?`)) {
-                            deleteTribute(id).then(() => {
+                    // Aprovar
+                    const approveBtn = item.querySelector('.approve-tribute-btn');
+                    if (approveBtn) {
+                        approveBtn.onclick = (e) => {
+                            const id = e.currentTarget.getAttribute('data-id');
+                            approveTribute(id).then(() => {
                                 initMural('all');
-                                renderAdminTributesList();
+                                renderAdminTributesList(statusFilter);
+                                checkPendingBadge();
+                                showAdminToast('✅ Homenagem aprovada e publicada no mural!');
                             });
-                        }
-                    };
+                        };
+                    }
+
+                    // Rejeitar
+                    const rejectBtn = item.querySelector('.reject-tribute-btn');
+                    if (rejectBtn) {
+                        rejectBtn.onclick = (e) => {
+                            const id = e.currentTarget.getAttribute('data-id');
+                            const label = statusFilter === 'approved' ? 'Deseja revogar a aprovação desta homenagem?' : `Rejeitar a homenagem de "${t.name}"?`;
+                            if (confirm(label)) {
+                                rejectTribute(id).then(() => {
+                                    initMural('all');
+                                    renderAdminTributesList(statusFilter);
+                                    checkPendingBadge();
+                                    showAdminToast('❌ Homenagem rejeitada.');
+                                });
+                            }
+                        };
+                    }
+
+                    // Excluir
+                    const deleteBtn = item.querySelector('.delete-tribute-btn');
+                    if (deleteBtn) {
+                        deleteBtn.onclick = (e) => {
+                            const id = e.currentTarget.getAttribute('data-id');
+                            if (confirm(`Excluir permanentemente a homenagem de "${t.name}"?`)) {
+                                deleteTribute(id).then(() => {
+                                    initMural('all');
+                                    renderAdminTributesList(statusFilter);
+                                    checkPendingBadge();
+                                    showAdminToast('🗑️ Homenagem excluída.');
+                                });
+                            }
+                        };
+                    }
 
                     listContainer.appendChild(item);
                 });
             });
+        }
+
+        // Toast de feedback dentro do painel admin
+        function showAdminToast(message) {
+            const existing = panel.querySelector('.admin-toast');
+            if (existing) existing.remove();
+            
+            const toast = document.createElement('div');
+            toast.classList.add('admin-toast');
+            toast.textContent = message;
+            panel.appendChild(toast);
+            
+            setTimeout(() => toast.remove(), 3000);
         }
     }
 });

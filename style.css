@@ -1557,3 +1557,180 @@ section {
         opacity: 0;
     }
 }
+
+/* ====================================================
+   SISTEMA DE MODERAÇÃO — Painel Admin Atualizado
+   ==================================================== */
+
+/* Badge de notificação no trigger oculto */
+.admin-trigger {
+    position: fixed !important;
+    bottom: 20px !important;
+    left: 20px !important;
+    z-index: 2000 !important;
+    cursor: pointer !important;
+    padding: 4px 8px !important;
+    border-radius: 4px !important;
+    font-size: 0.7rem !important;
+    color: transparent !important;
+    transition: color 0.3s ease !important;
+    user-select: none !important;
+}
+
+.admin-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: linear-gradient(135deg, #ff4a5a, #c0392b);
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 700;
+    font-family: var(--font-sans);
+    min-width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    border: 2px solid var(--bg-dark);
+    box-shadow: 0 2px 8px rgba(255, 74, 90, 0.5);
+    animation: pulseBadge 1.5s ease-in-out infinite;
+}
+
+@keyframes pulseBadge {
+    0%, 100% { transform: scale(1); box-shadow: 0 2px 8px rgba(255,74,90,0.5); }
+    50% { transform: scale(1.15); box-shadow: 0 4px 14px rgba(255,74,90,0.8); }
+}
+
+/* Abas de moderação */
+.admin-tabs {
+    display: flex;
+    gap: 6px;
+    margin: 16px 0 12px 0;
+    border-bottom: 1px solid var(--border-glass);
+    padding-bottom: 10px;
+}
+
+.admin-tab-btn {
+    flex: 1;
+    padding: 8px 6px;
+    border: 1px solid var(--border-glass);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.admin-tab-btn:hover {
+    border-color: var(--rose-gold);
+    color: var(--rose-gold-light);
+    background: rgba(183, 110, 121, 0.1);
+}
+
+.admin-tab-btn.active {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: rgba(242, 226, 162, 0.1);
+    box-shadow: 0 0 10px rgba(242, 226, 162, 0.15);
+}
+
+/* Botões de ação nas linhas do admin */
+.admin-action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.admin-action-btn:hover {
+    transform: scale(1.12);
+    filter: brightness(1.3);
+}
+
+/* Ajuste no item admin para acomodar múltiplos botões */
+.tribute-item-admin {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+    padding: 10px 12px !important;
+    border-radius: 10px !important;
+    background: rgba(255,255,255,0.03) !important;
+    border: 1px solid var(--border-glass) !important;
+    margin-bottom: 8px !important;
+    transition: background 0.2s ease !important;
+}
+
+.tribute-item-admin:hover {
+    background: rgba(183, 110, 121, 0.07) !important;
+}
+
+.admin-tribute-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.admin-tribute-info h5 {
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.admin-tribute-info p {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Toast de feedback do admin */
+.admin-toast {
+    position: sticky;
+    bottom: 10px;
+    left: 0;
+    right: 0;
+    margin: 10px 0 0 0;
+    padding: 10px 16px;
+    background: rgba(30, 15, 20, 0.95);
+    border: 1px solid var(--border-glass-gold);
+    border-radius: 10px;
+    color: var(--gold);
+    font-family: var(--font-sans);
+    font-size: 0.82rem;
+    text-align: center;
+    backdrop-filter: blur(10px);
+    animation: toastIn 0.3s ease;
+    z-index: 10;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+}
+
+@keyframes toastIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
